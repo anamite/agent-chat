@@ -1,0 +1,23 @@
+# Force LF line endings on Linux-executed files regardless of developer OS.
+# This prevents Windows CRLF from breaking shell scripts on the Pi.
+
+*.sh        text eol=lf
+*.py        text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.md        text eol=lf
+*.json      text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+*.toml      text eol=lf
+*.env*      text eol=lf
+
+# Binary files — no line-ending conversion.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.webp      binary
+*.m4a       binary
+*.mp4       binary
+*.apk       binary
