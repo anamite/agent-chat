@@ -67,6 +67,11 @@ class Database:
     async def connect(self) -> None:
         self._conn = await aiosqlite.connect(self.path)
         self._conn.row_factory = aiosqlite.Row
+        # busy_timeout FIRST: the systemd service and one-shot CLI commands
+        # (e.g. `pair`) open the same file, so a write can briefly collide with
+        # the service's write lock. Without this, SQLite raises "database is
+        # locked" immediately; with it, the writer waits up to 5s for the lock.
+        await self._conn.execute("PRAGMA busy_timeout=5000;")
         await self._conn.execute("PRAGMA journal_mode=WAL;")
         await self._conn.execute("PRAGMA foreign_keys=ON;")
         await self._conn.executescript(SCHEMA)
