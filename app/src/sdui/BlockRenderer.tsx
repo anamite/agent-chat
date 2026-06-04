@@ -22,6 +22,10 @@ import FormBlock from "./blocks/FormBlock";
 import CardBlock from "./blocks/CardBlock";
 import ChartBlock from "./blocks/ChartBlock";
 import HtmlBlock from "./blocks/HtmlBlock";
+import StepperBlock from "./blocks/StepperBlock";
+import DateTimeBlock from "./blocks/DateTimeBlock";
+import WeatherBlock from "./blocks/WeatherBlock";
+import MapBlock from "./blocks/MapBlock";
 import BlockErrorBoundary from "./BlockErrorBoundary";
 
 function UnsupportedBlock({ type }: { type: string }) {
@@ -56,6 +60,14 @@ function renderBlock(block: Block, mine: boolean, msgId: string) {
       return <ChartBlock block={block} />;
     case "html":
       return <HtmlBlock block={block} />;
+    case "stepper":
+      return <StepperBlock block={block} msgId={msgId} />;
+    case "datetime":
+      return <DateTimeBlock block={block} msgId={msgId} />;
+    case "weather":
+      return <WeatherBlock block={block} />;
+    case "map":
+      return <MapBlock block={block} msgId={msgId} />;
     default:
       return <UnsupportedBlock type={(block as { type: string }).type} />;
   }

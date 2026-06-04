@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { PanResponder, StyleSheet, Text, View } from "react-native";
 import type { SliderBlock as SliderBlockT } from "../../protocol/protocol";
 import { useBlockEvents } from "../events";
-import { colors, fontSize, radius, space, weight } from "../../theme/tokens";
+import { colors, font, fontSize, radius, space, weight } from "../../theme/tokens";
 
 const THUMB = 22;
 const TRACK_H = 4;
@@ -82,13 +82,19 @@ export default function SliderBlock({
 const styles = StyleSheet.create({
   wrap: { gap: space.sm },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  label: { color: colors.text2, fontSize: fontSize.sm, fontWeight: weight.medium },
-  value: { color: colors.accent, fontSize: fontSize.sm, fontVariant: ["tabular-nums"] },
+  label: { color: colors.text, fontSize: fontSize.sm, fontWeight: weight.medium },
+  value: {
+    color: colors.accent,
+    fontFamily: font.mono,
+    fontSize: fontSize.sm + 1,
+    fontWeight: weight.semibold,
+    fontVariant: ["tabular-nums"],
+  },
   trackArea: { height: THUMB, justifyContent: "center" },
   track: {
     height: TRACK_H,
     borderRadius: radius.pill,
-    backgroundColor: colors.border,
+    backgroundColor: colors.surface,
   },
   fill: {
     position: "absolute",
@@ -97,13 +103,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   thumb: {
+    // white knob with a lime ring, lifted off the track — matches the design.
     position: "absolute",
     width: THUMB,
     height: THUMB,
     borderRadius: radius.pill,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.text,
     marginLeft: -THUMB / 2,
     borderWidth: 3,
-    borderColor: colors.canvas,
+    borderColor: colors.accent,
   },
 });

@@ -256,6 +256,82 @@ def handle_html(params, **_):
     return _ok("HTML block rendered.", **res)
 
 
+def handle_stepper(params, **_):
+    """Render a numeric value setter with −/+ steppers and an Apply action."""
+    chat = params.get("chat", DEFAULT_CHAT)
+    block = {"type": "stepper", "id": params.get("id") or _short_id(), "value": params["value"]}
+    for k in ("label", "min", "max", "step", "unit", "submitLabel"):
+        if params.get(k) is not None:
+            block[k] = params[k]
+    blocks = []
+    if params.get("text"):
+        blocks.append({"type": "text", "text": params["text"]})
+    blocks.append(block)
+    res = _push_message(chat, blocks)
+    return _ok("Stepper sent; the user's value arrives as your next message.", **res)
+
+
+def handle_datetime(params, **_):
+    """Render a day picker + time and a Confirm action (scheduler)."""
+    chat = params.get("chat", DEFAULT_CHAT)
+    days = [
+        {"value": d["value"], "weekday": d["weekday"], "day": d["day"]}
+        for d in params.get("days", [])
+    ]
+    block = {"type": "datetime", "id": params.get("id") or _short_id(), "days": days}
+    for k in ("label", "selected", "time", "meridiem", "confirmLabel"):
+        if params.get(k) is not None:
+            block[k] = params[k]
+    blocks = []
+    if params.get("text"):
+        blocks.append({"type": "text", "text": params["text"]})
+    blocks.append(block)
+    res = _push_message(chat, blocks)
+    return _ok("Scheduler sent; the user's pick arrives as your next message.", **res)
+
+
+def handle_weather(params, **_):
+    """Render a read-only weather card."""
+    chat = params.get("chat", DEFAULT_CHAT)
+    block = {"type": "weather", "location": params["location"], "temp": params["temp"]}
+    for k in ("unit", "condition", "icon", "high", "low", "hourly"):
+        if params.get(k) is not None:
+            block[k] = params[k]
+    blocks = []
+    if params.get("text"):
+        blocks.append({"type": "text", "text": params["text"]})
+    blocks.append(block)
+    res = _push_message(chat, blocks)
+    return _ok("Weather card rendered.", **res)
+
+
+def handle_map(params, **_):
+    """Render a location snippet with an optional Directions action."""
+    chat = params.get("chat", DEFAULT_CHAT)
+    block = {"type": "map", "label": params["label"]}
+    for k in ("caption", "pin"):
+        if params.get(k) is not None:
+            block[k] = params[k]
+    action = params.get("action")
+    if action:
+        block["action"] = {
+            k: v
+            for k, v in {
+                "id": action.get("id") or _short_id(),
+                "label": action["label"],
+                "value": action.get("value"),
+                "style": action.get("style"),
+            }.items()
+            if v is not None
+        }
+    blocks = []
+    if params.get("text"):
+        blocks.append({"type": "text", "text": params["text"]})
+    blocks.append(block)
+    res = _push_message(chat, blocks)
+    return _ok("Map snippet rendered.", **res)
+
+
 # ---------------------------------------------------------------------------
 # Registration
 # ---------------------------------------------------------------------------
@@ -428,6 +504,103 @@ def _schemas():
                 "required": ["html"],
             },
         },
+        "ui_stepper": {
+            "name": "ui_stepper",
+            "description": "Ask the user to set a number with −/+ steppers and an Apply button. Returns when applied.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "chat": _CHAT,
+                    "text": _TEXT,
+                    "label": {"type": "string"},
+                    "value": {"type": "number", "description": "Starting value."},
+                    "min": {"type": "number"},
+                    "max": {"type": "number"},
+                    "step": {"type": "number"},
+                    "unit": {"type": "string", "description": "Suffix shown after the value, e.g. '°C'."},
+                    "submitLabel": {"type": "string"},
+                },
+                "required": ["value"],
+            },
+        },
+        "ui_datetime": {
+            "name": "ui_datetime",
+            "description": "Ask the user to pick a day (from a row you supply) at a given time. Returns the chosen day on confirm.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "chat": _CHAT,
+                    "text": _TEXT,
+                    "label": {"type": "string"},
+                    "days": {
+                        "type": "array",
+                        "description": "Day options. Each: {value, weekday, day}, e.g. {value:'2026-06-04', weekday:'Wed', day:'4'}.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "value": {"type": "string"},
+                                "weekday": {"type": "string"},
+                                "day": {"type": "string"},
+                            },
+                            "required": ["value", "weekday", "day"],
+                        },
+                    },
+                    "selected": {"type": "string", "description": "value of the pre-selected day."},
+                    "time": {"type": "string", "description": "Display time, e.g. '09:30'."},
+                    "meridiem": {"type": "string", "enum": ["AM", "PM"]},
+                    "confirmLabel": {"type": "string"},
+                },
+                "required": ["days"],
+            },
+        },
+        "ui_weather": {
+            "name": "ui_weather",
+            "description": "Render a read-only weather card with current conditions and an optional hourly strip.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "chat": _CHAT,
+                    "text": _TEXT,
+                    "location": {"type": "string"},
+                    "temp": {"type": "number"},
+                    "unit": {"type": "string", "description": "Degree unit letter, e.g. 'C' or 'F'."},
+                    "condition": {"type": "string"},
+                    "icon": {"type": "string", "enum": ["sun", "cloud", "rain", "snow", "storm", "fog"]},
+                    "high": {"type": "number"},
+                    "low": {"type": "number"},
+                    "hourly": {
+                        "type": "array",
+                        "description": "Forecast hours. Each: {time, icon?, temp}, e.g. {time:'14', icon:'sun', temp:'19°'}.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "time": {"type": "string"},
+                                "icon": {"type": "string", "enum": ["sun", "cloud", "rain", "snow", "storm", "fog"]},
+                                "temp": {"type": "string"},
+                            },
+                            "required": ["time", "temp"],
+                        },
+                    },
+                },
+                "required": ["location", "temp"],
+            },
+        },
+        "ui_map": {
+            "name": "ui_map",
+            "description": "Render a location snippet (stylized map + pin) with an optional action button like Directions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "chat": _CHAT,
+                    "text": _TEXT,
+                    "label": {"type": "string", "description": "Place name shown under the map."},
+                    "caption": {"type": "string", "description": "Secondary line, e.g. '0.4 mi · 8 min walk'."},
+                    "pin": {"type": "string", "description": "Text inside the pin bubble."},
+                    "action": button_item,
+                },
+                "required": ["label"],
+            },
+        },
     }
 
 
@@ -441,6 +614,10 @@ _HANDLERS = {
     "ui_update": handle_update,
     "ui_chart": handle_chart,
     "ui_html": handle_html,
+    "ui_stepper": handle_stepper,
+    "ui_datetime": handle_datetime,
+    "ui_weather": handle_weather,
+    "ui_map": handle_map,
 }
 
 

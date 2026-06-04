@@ -760,6 +760,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 4000
+                      },
+                      "allowJs": {
+                        "type": "boolean"
                       }
                     },
                     "required": [
@@ -844,6 +847,263 @@
                       "type",
                       "id",
                       "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "stepper"
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "value": {
+                        "type": "number"
+                      },
+                      "min": {
+                        "type": "number"
+                      },
+                      "max": {
+                        "type": "number"
+                      },
+                      "step": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "submitLabel": {
+                        "type": "string",
+                        "maxLength": 120
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "id",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "datetime"
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "days": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64
+                            },
+                            "weekday": {
+                              "type": "string",
+                              "maxLength": 12
+                            },
+                            "day": {
+                              "type": "string",
+                              "maxLength": 8
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "weekday",
+                            "day"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "minItems": 1,
+                        "maxItems": 14
+                      },
+                      "selected": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "time": {
+                        "type": "string",
+                        "maxLength": 8
+                      },
+                      "meridiem": {
+                        "type": "string",
+                        "enum": [
+                          "AM",
+                          "PM"
+                        ]
+                      },
+                      "confirmLabel": {
+                        "type": "string",
+                        "maxLength": 120
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "id",
+                      "days"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "weather"
+                      },
+                      "location": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "temp": {
+                        "type": "number"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 4
+                      },
+                      "condition": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "icon": {
+                        "type": "string",
+                        "enum": [
+                          "sun",
+                          "cloud",
+                          "rain",
+                          "snow",
+                          "storm",
+                          "fog"
+                        ]
+                      },
+                      "high": {
+                        "type": "number"
+                      },
+                      "low": {
+                        "type": "number"
+                      },
+                      "hourly": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "time": {
+                              "type": "string",
+                              "maxLength": 8
+                            },
+                            "icon": {
+                              "type": "string",
+                              "enum": [
+                                "sun",
+                                "cloud",
+                                "rain",
+                                "snow",
+                                "storm",
+                                "fog"
+                              ]
+                            },
+                            "temp": {
+                              "type": "string",
+                              "maxLength": 8
+                            }
+                          },
+                          "required": [
+                            "time",
+                            "temp"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "maxItems": 12
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "location",
+                      "temp"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "map"
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "caption": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "pin": {
+                        "type": "string",
+                        "maxLength": 60
+                      },
+                      "action": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "value": {
+                            "type": "string",
+                            "maxLength": 2000
+                          },
+                          "style": {
+                            "type": "string",
+                            "enum": [
+                              "default",
+                              "primary",
+                              "danger"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "label"
                     ],
                     "additionalProperties": false
                   }
@@ -1744,6 +2004,9 @@
                         "type": "integer",
                         "exclusiveMinimum": 0,
                         "maximum": 4000
+                      },
+                      "allowJs": {
+                        "type": "boolean"
                       }
                     },
                     "required": [
@@ -1828,6 +2091,263 @@
                       "type",
                       "id",
                       "title"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "stepper"
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "value": {
+                        "type": "number"
+                      },
+                      "min": {
+                        "type": "number"
+                      },
+                      "max": {
+                        "type": "number"
+                      },
+                      "step": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "submitLabel": {
+                        "type": "string",
+                        "maxLength": 120
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "id",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "datetime"
+                      },
+                      "id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      "label": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "days": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 64
+                            },
+                            "weekday": {
+                              "type": "string",
+                              "maxLength": 12
+                            },
+                            "day": {
+                              "type": "string",
+                              "maxLength": 8
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "weekday",
+                            "day"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "minItems": 1,
+                        "maxItems": 14
+                      },
+                      "selected": {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      "time": {
+                        "type": "string",
+                        "maxLength": 8
+                      },
+                      "meridiem": {
+                        "type": "string",
+                        "enum": [
+                          "AM",
+                          "PM"
+                        ]
+                      },
+                      "confirmLabel": {
+                        "type": "string",
+                        "maxLength": 120
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "id",
+                      "days"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "weather"
+                      },
+                      "location": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "temp": {
+                        "type": "number"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 4
+                      },
+                      "condition": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "icon": {
+                        "type": "string",
+                        "enum": [
+                          "sun",
+                          "cloud",
+                          "rain",
+                          "snow",
+                          "storm",
+                          "fog"
+                        ]
+                      },
+                      "high": {
+                        "type": "number"
+                      },
+                      "low": {
+                        "type": "number"
+                      },
+                      "hourly": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "time": {
+                              "type": "string",
+                              "maxLength": 8
+                            },
+                            "icon": {
+                              "type": "string",
+                              "enum": [
+                                "sun",
+                                "cloud",
+                                "rain",
+                                "snow",
+                                "storm",
+                                "fog"
+                              ]
+                            },
+                            "temp": {
+                              "type": "string",
+                              "maxLength": 8
+                            }
+                          },
+                          "required": [
+                            "time",
+                            "temp"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "maxItems": 12
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "location",
+                      "temp"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "map"
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "caption": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "pin": {
+                        "type": "string",
+                        "maxLength": 60
+                      },
+                      "action": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120
+                          },
+                          "value": {
+                            "type": "string",
+                            "maxLength": 2000
+                          },
+                          "style": {
+                            "type": "string",
+                            "enum": [
+                              "default",
+                              "primary",
+                              "danger"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "label"
                     ],
                     "additionalProperties": false
                   }

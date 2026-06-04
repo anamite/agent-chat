@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
     maxHeight: 120,
     color: colors.text,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.inputBg,
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: radius.control,

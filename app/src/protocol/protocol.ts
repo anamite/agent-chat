@@ -15,7 +15,8 @@
  *   { v: 1, id: ULID, ts: epoch-ms, chat: string, from: "user"|"agent", kind, ... }
  *
  * Frame kinds: hello, ping, pong, message, stream, typing, receipt, event, edit, error
- * Block types: text, file, voice, buttons, input, slider, select, form, chart, html, card
+ * Block types: text, file, voice, buttons, input, slider, select, form, chart, html,
+ *              card, stepper, datetime, weather, map
  */
 
 import { z } from "zod";
@@ -175,6 +176,83 @@ export const CardBlock = z.object({
   actions: z.array(Button).max(8).optional(),
 });
 
+/** A numeric value setter with −/+ steppers and an Apply action. */
+export const StepperBlock = z.object({
+  type: z.literal("stepper"),
+  id: z.string().min(1).max(64),
+  label: z.string().max(200).optional(),
+  value: z.number(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  step: z.number().positive().optional(),
+  /** Unit suffix shown after the value, e.g. "°C", "%". */
+  unit: z.string().max(12).optional(),
+  /** Apply-button label (default "Apply"). Tapping emits an `action`. */
+  submitLabel: z.string().max(120).optional(),
+});
+
+/** One selectable day in a datetime widget. */
+export const DateOption = z.object({
+  /** Opaque value sent back on confirm (e.g. an ISO date). */
+  value: z.string().min(1).max(64),
+  /** Short weekday label, e.g. "WED". */
+  weekday: z.string().max(12),
+  /** Day-of-month label, e.g. "4". */
+  day: z.string().max(8),
+});
+
+/** A scheduler — pick a day from a row of options + a (display) time, confirm. */
+export const DateTimeBlock = z.object({
+  type: z.literal("datetime"),
+  id: z.string().min(1).max(64),
+  label: z.string().max(200).optional(),
+  days: z.array(DateOption).min(1).max(14),
+  /** value of the pre-selected day, if any. */
+  selected: z.string().max(64).optional(),
+  /** Time of day, e.g. "09:30". */
+  time: z.string().max(8).optional(),
+  /** Meridiem, if 12-hour. */
+  meridiem: z.enum(["AM", "PM"]).optional(),
+  confirmLabel: z.string().max(120).optional(),
+});
+
+export const WeatherIcon = z.enum(["sun", "cloud", "rain", "snow", "storm", "fog"]);
+
+/** One hour in a weather card's forecast strip. */
+export const WeatherHour = z.object({
+  time: z.string().max(8),
+  icon: WeatherIcon.optional(),
+  temp: z.string().max(8),
+});
+
+/** A read-only weather data card. */
+export const WeatherBlock = z.object({
+  type: z.literal("weather"),
+  location: z.string().min(1).max(120),
+  /** Current temperature (number; rendered with `unit`). */
+  temp: z.number(),
+  /** Unit letter shown after the degree sign, e.g. "C" or "F". */
+  unit: z.string().max(4).optional(),
+  condition: z.string().max(120).optional(),
+  icon: WeatherIcon.optional(),
+  high: z.number().optional(),
+  low: z.number().optional(),
+  hourly: z.array(WeatherHour).max(12).optional(),
+});
+
+/** A location snippet — faux map with a pin and an optional Directions action. */
+export const MapBlock = z.object({
+  type: z.literal("map"),
+  /** Place name shown under the map. */
+  label: z.string().min(1).max(200),
+  /** Secondary line, e.g. "0.4 mi · 8 min walk". */
+  caption: z.string().max(200).optional(),
+  /** Text inside the pin bubble. */
+  pin: z.string().max(60).optional(),
+  /** Optional action button (e.g. Directions); tapping emits an `action`. */
+  action: Button.optional(),
+});
+
 export const Block = z.discriminatedUnion("type", [
   TextBlock,
   FileBlock,
@@ -187,6 +265,10 @@ export const Block = z.discriminatedUnion("type", [
   ChartBlock,
   HtmlBlock,
   CardBlock,
+  StepperBlock,
+  DateTimeBlock,
+  WeatherBlock,
+  MapBlock,
 ]);
 
 // ---------------------------------------------------------------------------
@@ -343,6 +425,13 @@ export type FormBlock = z.infer<typeof FormBlock>;
 export type ChartBlock = z.infer<typeof ChartBlock>;
 export type HtmlBlock = z.infer<typeof HtmlBlock>;
 export type CardBlock = z.infer<typeof CardBlock>;
+export type StepperBlock = z.infer<typeof StepperBlock>;
+export type DateTimeBlock = z.infer<typeof DateTimeBlock>;
+export type DateOption = z.infer<typeof DateOption>;
+export type WeatherBlock = z.infer<typeof WeatherBlock>;
+export type WeatherHour = z.infer<typeof WeatherHour>;
+export type WeatherIcon = z.infer<typeof WeatherIcon>;
+export type MapBlock = z.infer<typeof MapBlock>;
 export type Button = z.infer<typeof Button>;
 
 export type Frame = z.infer<typeof Frame>;

@@ -169,6 +169,64 @@ class CardBlock(_Strict):
     actions: Annotated[list[Button], Field(max_length=8)] | None = None
 
 
+class StepperBlock(_Strict):
+    type: Literal["stepper"]
+    id: Annotated[str, StringConstraints(min_length=1, max_length=64)]
+    label: Annotated[str, StringConstraints(max_length=200)] | None = None
+    value: float
+    min: float | None = None
+    max: float | None = None
+    step: Annotated[float, Field(gt=0)] | None = None
+    unit: Annotated[str, StringConstraints(max_length=12)] | None = None
+    submitLabel: Annotated[str, StringConstraints(max_length=120)] | None = None
+
+
+class DateOption(_Strict):
+    value: Annotated[str, StringConstraints(min_length=1, max_length=64)]
+    weekday: Annotated[str, StringConstraints(max_length=12)]
+    day: Annotated[str, StringConstraints(max_length=8)]
+
+
+class DateTimeBlock(_Strict):
+    type: Literal["datetime"]
+    id: Annotated[str, StringConstraints(min_length=1, max_length=64)]
+    label: Annotated[str, StringConstraints(max_length=200)] | None = None
+    days: Annotated[list[DateOption], Field(min_length=1, max_length=14)]
+    selected: Annotated[str, StringConstraints(max_length=64)] | None = None
+    time: Annotated[str, StringConstraints(max_length=8)] | None = None
+    meridiem: Literal["AM", "PM"] | None = None
+    confirmLabel: Annotated[str, StringConstraints(max_length=120)] | None = None
+
+
+WeatherIcon = Literal["sun", "cloud", "rain", "snow", "storm", "fog"]
+
+
+class WeatherHour(_Strict):
+    time: Annotated[str, StringConstraints(max_length=8)]
+    icon: WeatherIcon | None = None
+    temp: Annotated[str, StringConstraints(max_length=8)]
+
+
+class WeatherBlock(_Strict):
+    type: Literal["weather"]
+    location: Annotated[str, StringConstraints(min_length=1, max_length=120)]
+    temp: float
+    unit: Annotated[str, StringConstraints(max_length=4)] | None = None
+    condition: Annotated[str, StringConstraints(max_length=120)] | None = None
+    icon: WeatherIcon | None = None
+    high: float | None = None
+    low: float | None = None
+    hourly: Annotated[list[WeatherHour], Field(max_length=12)] | None = None
+
+
+class MapBlock(_Strict):
+    type: Literal["map"]
+    label: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+    caption: Annotated[str, StringConstraints(max_length=200)] | None = None
+    pin: Annotated[str, StringConstraints(max_length=60)] | None = None
+    action: Button | None = None
+
+
 Block = Annotated[
     Union[
         TextBlock,
@@ -182,6 +240,10 @@ Block = Annotated[
         ChartBlock,
         HtmlBlock,
         CardBlock,
+        StepperBlock,
+        DateTimeBlock,
+        WeatherBlock,
+        MapBlock,
     ],
     Field(discriminator="type"),
 ]

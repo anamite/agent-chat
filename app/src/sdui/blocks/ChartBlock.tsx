@@ -12,6 +12,7 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { BarChart, LineChart, PieChart } from "react-native-gifted-charts";
 import type { ChartBlock as ChartBlockT } from "../../protocol/protocol";
+import { Chip, WidgetCard, WTitle } from "../primitives";
 import { colors, fontSize, radius, space, weight } from "../../theme/tokens";
 
 // A palette that works on dark background; accent (lime) first.
@@ -63,7 +64,7 @@ function BarViz({ block }: { block: ChartBlockT }) {
         barWidth={BAR_W}
         barBorderRadius={3}
         frontColor={color}
-        backgroundColor={colors.surface}
+        backgroundColor={colors.surfaceAlt}
         xAxisColor={colors.border}
         yAxisColor={colors.border}
         yAxisTextStyle={{ color: colors.text2, fontSize: 9 }}
@@ -213,7 +214,7 @@ function PieViz({ block }: { block: ChartBlockT }) {
       radius={70}
       innerRadius={30}
       donut
-      strokeColor={colors.surface}
+      strokeColor={colors.surfaceAlt}
       strokeWidth={2}
       focusOnPress
       showText
@@ -231,18 +232,13 @@ function PieViz({ block }: { block: ChartBlockT }) {
 // Main ChartBlock component
 // ---------------------------------------------------------------------------
 
-function ChartLabel({ text }: { text: string }) {
-  return <Text style={styles.typeLabel}>{text.toUpperCase()}</Text>;
-}
-
 /** ChartBlock — compact dark chart card with type label. */
 export default function ChartBlock({ block }: { block: ChartBlockT }) {
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        {block.title ? <Text style={styles.title}>{block.title}</Text> : null}
-        <ChartLabel text={block.chartType} />
-      </View>
+    <WidgetCard>
+      <WTitle kicker="Chart" right={<Chip tone="default">{block.chartType}</Chip>}>
+        {block.title ?? "Chart"}
+      </WTitle>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {block.chartType === "pie" ? (
@@ -271,7 +267,7 @@ export default function ChartBlock({ block }: { block: ChartBlockT }) {
           ))}
         </View>
       ) : null}
-    </View>
+    </WidgetCard>
   );
 }
 
@@ -280,32 +276,6 @@ export default function ChartBlock({ block }: { block: ChartBlockT }) {
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: radius.card,
-    padding: space.md,
-    gap: space.sm,
-    overflow: "hidden",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  title: {
-    color: colors.text,
-    fontSize: fontSize.md,
-    fontWeight: weight.semibold,
-    flexShrink: 1,
-  },
-  typeLabel: {
-    color: colors.accent,
-    fontSize: fontSize.xs,
-    fontWeight: weight.bold,
-    letterSpacing: 1,
-  },
   chartWrap: {
     paddingVertical: space.xs,
     paddingRight: space.sm,

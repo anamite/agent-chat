@@ -7,21 +7,36 @@
  */
 
 export const colors = {
-  canvas: "#08090A", // app background
-  surface: "#15171A", // cards, inputs, elevated rows
-  surfaceAlt: "#0F1113", // slightly raised vs canvas
-  border: "#2A2D33", // hairline borders
+  canvas: "#08090A", // app background (design: bg)
+  surface: "#15171A", // raised controls / steppers / inputs (design: bg3)
+  surfaceAlt: "#0E0F11", // widget card surface, one step above canvas (design: bg2)
+  inputBg: "#101113", // text-field fill (design: bgInput)
+  border: "#1C1E22", // soft hairline borders (design: border)
+  borderStrong: "#2A2D33", // stronger dividers / control outlines (design: borderStrong)
 
   text: "#F3F4F5", // primary text
   text2: "#969BA3", // secondary / muted text
-  text3: "#5A5E66", // tertiary / disabled
+  text3: "#5A5F68", // tertiary / disabled
 
   accent: "#D6FF3D", // lime / neon — primary accent + user bubble
-  accentInk: "#0A0C00", // text/icon on top of accent
+  accentDim: "#A9CC2E", // pressed / dimmed accent
+  accentInk: "#0B0C0A", // text/icon on top of accent
 
   ok: "#5CE08F",
   warn: "#F5C451",
   fail: "#FF6B5E",
+} as const;
+
+/** Translucent accent/status fills for tinted chips & soft surfaces. */
+export const tint = {
+  accent: "rgba(214,255,61,0.12)",
+  accentBorder: "rgba(214,255,61,0.25)",
+  ok: "rgba(92,224,143,0.12)",
+  okBorder: "rgba(92,224,143,0.22)",
+  warn: "rgba(245,196,81,0.12)",
+  warnBorder: "rgba(245,196,81,0.22)",
+  fail: "rgba(255,107,94,0.12)",
+  failBorder: "rgba(255,107,94,0.22)",
 } as const;
 
 export const font = {
@@ -44,6 +59,7 @@ export const weight = {
 export const radius = {
   card: 16, // rounded cards (Canvas mode)
   console: 8, // console cards
+  widget: 8, // agent-emitted widget cards (Console mode — design: t.card)
   control: 3, // inputs / buttons
   pill: 999,
 } as const;
@@ -73,6 +89,7 @@ export type VisualMode = "console" | "canvas";
 
 export const theme = {
   colors,
+  tint,
   font,
   weight,
   radius,

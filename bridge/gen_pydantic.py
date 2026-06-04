@@ -56,6 +56,31 @@ VALID = [
         blocks=[{"type": "card", "id": "c1", "title": "Email", "status": "approved"}],
     ),
     _frame(kind="error", **{"from": "agent"}, code="bad", message="nope"),
+    # New widget blocks.
+    _frame(
+        kind="message",
+        **{"from": "agent"},
+        msgId=GOOD_ULID,
+        blocks=[{"type": "stepper", "id": "s1", "label": "Temp", "value": 21, "min": 16, "max": 26, "step": 0.5, "unit": "°C"}],
+    ),
+    _frame(
+        kind="message",
+        **{"from": "agent"},
+        msgId=GOOD_ULID,
+        blocks=[{"type": "datetime", "id": "d1", "days": [{"value": "2026-06-04", "weekday": "Wed", "day": "4"}], "time": "09:30", "meridiem": "AM"}],
+    ),
+    _frame(
+        kind="message",
+        **{"from": "agent"},
+        msgId=GOOD_ULID,
+        blocks=[{"type": "weather", "location": "SF", "temp": 18, "unit": "C", "condition": "Sunny", "icon": "sun", "high": 20, "low": 13, "hourly": [{"time": "now", "icon": "sun", "temp": "18°"}]}],
+    ),
+    _frame(
+        kind="message",
+        **{"from": "agent"},
+        msgId=GOOD_ULID,
+        blocks=[{"type": "map", "label": "Pier 39", "caption": "0.4 mi", "pin": "Pier 39", "action": {"id": "go", "label": "Directions"}}],
+    ),
 ]
 
 INVALID = [

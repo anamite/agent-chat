@@ -18,7 +18,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import type { HtmlBlock as HtmlBlockT } from "../../protocol/protocol";
-import { colors, fontSize, radius, space, weight } from "../../theme/tokens";
+import { colors, font, fontSize, radius, space, weight } from "../../theme/tokens";
 
 const DEFAULT_HEIGHT = 300;
 
@@ -59,7 +59,12 @@ export default function HtmlBlock({ block }: { block: HtmlBlockT }) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.label}>HTML</Text>
+        <View style={styles.dots}>
+          <View style={[styles.dot, { backgroundColor: colors.fail }]} />
+          <View style={[styles.dot, { backgroundColor: colors.warn }]} />
+          <View style={[styles.dot, { backgroundColor: colors.ok }]} />
+        </View>
+        <Text style={styles.label}>RENDERED HTML</Text>
         <Text style={allowJs ? styles.jsOn : styles.jsOff}>
           {allowJs ? "JS ON" : "JS OFF"}
         </Text>
@@ -94,26 +99,31 @@ export default function HtmlBlock({ block }: { block: HtmlBlockT }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: radius.card,
+    borderRadius: radius.widget,
     overflow: "hidden",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: space.sm,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
+    backgroundColor: colors.surface,
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
+  dots: { flexDirection: "row", gap: 5 },
+  dot: { width: 9, height: 9, borderRadius: 999, opacity: 0.85 },
   label: {
+    flex: 1,
     color: colors.accent,
-    fontSize: fontSize.xs,
-    fontWeight: weight.bold,
-    letterSpacing: 1,
+    fontFamily: font.mono,
+    fontSize: 10,
+    fontWeight: weight.semibold,
+    letterSpacing: 0.5,
   },
   jsOff: {
     color: colors.text3,

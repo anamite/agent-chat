@@ -1,20 +1,17 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
 import type { CardBlock as CardBlockT } from "../../protocol/protocol";
 import { useBlockEvents } from "../events";
-import { colors, fontSize, radius, space, weight } from "../../theme/tokens";
+import { Btn, Chip, type ChipTone, WidgetCard, WTitle } from "../primitives";
+import { colors, fontSize, radius, space, font } from "../../theme/tokens";
 
-const STATUS: Record<
-  string,
-  { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }
-> = {
-  pending: { label: "Pending", color: colors.warn, icon: "time-outline" },
-  approved: { label: "Approved", color: colors.ok, icon: "checkmark-circle-outline" },
-  rejected: { label: "Rejected", color: colors.fail, icon: "close-circle-outline" },
-  done: { label: "Done", color: colors.ok, icon: "checkmark-done-outline" },
-  error: { label: "Error", color: colors.fail, icon: "alert-circle-outline" },
-  info: { label: "Info", color: colors.text2, icon: "information-circle-outline" },
+const STATUS: Record<string, { label: string; tone: ChipTone; dot: boolean }> = {
+  pending: { label: "pending", tone: "warn", dot: true },
+  approved: { label: "approved", tone: "ok", dot: true },
+  rejected: { label: "rejected", tone: "fail", dot: true },
+  done: { label: "done", tone: "ok", dot: true },
+  error: { label: "error", tone: "fail", dot: true },
+  info: { label: "info", tone: "default", dot: false },
 };
 
 /**
@@ -29,95 +26,56 @@ export default function CardBlock({ block, msgId }: { block: CardBlockT; msgId: 
   const status = block.status ?? "pending";
   const meta = STATUS[status] ?? STATUS.info;
   const interactive = status === "pending" && !tapped;
+  const hasActions = !!block.actions?.length;
+  const kicker = hasActions && status === "pending" ? "Action · needs approval" : undefined;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.titles}>
-          <Text style={styles.title}>{block.title}</Text>
+    <WidgetCard>
+      <WTitle kicker={kicker} right={<Chip tone={meta.tone} dot={meta.dot}>{meta.label}</Chip>}>
+        {block.title}
+      </WTitle>
+
+      {block.body || block.subtitle ? (
+        <View style={styles.bodyBox}>
           {block.subtitle ? <Text style={styles.subtitle}>{block.subtitle}</Text> : null}
+          {block.body ? <Text style={styles.body}>{block.body}</Text> : null}
         </View>
-        <View style={[styles.badge, { borderColor: meta.color }]}>
-          <Ionicons name={meta.icon} size={13} color={meta.color} />
-          <Text style={[styles.badgeText, { color: meta.color }]}>{meta.label}</Text>
-        </View>
-      </View>
+      ) : null}
 
-      {block.body ? <Text style={styles.body}>{block.body}</Text> : null}
-
-      {block.actions && block.actions.length ? (
+      {hasActions ? (
         <View style={styles.actions}>
-          {block.actions.map((a) => (
-            <Pressable
+          {block.actions!.map((a) => (
+            <Btn
               key={a.id}
+              full
+              label={a.label}
+              kind={a.style === "primary" ? "primary" : a.style === "danger" ? "danger" : "ghost"}
+              icon={a.style === "primary" ? "checkmark" : a.style === "danger" ? "close" : undefined}
               disabled={!interactive}
+              dim={!interactive}
               onPress={() => {
                 setTapped(true);
                 sendAction(block.id, a.value ?? a.label, a.label);
               }}
-              style={[
-                styles.action,
-                a.style === "primary" && styles.primary,
-                a.style === "danger" && styles.danger,
-                !interactive && styles.dim,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.actionText,
-                  a.style === "primary" && styles.actionTextPrimary,
-                  a.style === "danger" && styles.actionTextDanger,
-                ]}
-              >
-                {a.label}
-              </Text>
-            </Pressable>
+            />
           ))}
         </View>
       ) : null}
-    </View>
+    </WidgetCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    gap: space.md,
-    padding: space.lg,
-    borderRadius: radius.card,
+  bodyBox: {
+    backgroundColor: colors.canvas,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-    minWidth: 240,
-  },
-  header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: space.sm },
-  titles: { flexShrink: 1, gap: 2 },
-  title: { color: colors.text, fontSize: fontSize.md, fontWeight: weight.semibold },
-  subtitle: { color: colors.text2, fontSize: fontSize.sm },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: space.sm,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-  },
-  badgeText: { fontSize: fontSize.xs, fontWeight: weight.semibold },
-  body: { color: colors.text, fontSize: fontSize.md, lineHeight: 21 },
-  actions: { flexDirection: "row", gap: space.sm },
-  action: {
-    flex: 1,
-    paddingVertical: space.sm,
     borderRadius: radius.control,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    alignItems: "center",
+    padding: space.md,
+    marginBottom: space.md,
+    gap: 6,
   },
-  primary: { backgroundColor: colors.accent, borderColor: colors.accent },
-  danger: { borderColor: colors.fail, backgroundColor: "transparent" },
-  dim: { opacity: 0.45 },
-  actionText: { color: colors.text, fontSize: fontSize.md, fontWeight: weight.medium },
-  actionTextPrimary: { color: colors.accentInk, fontWeight: weight.semibold },
-  actionTextDanger: { color: colors.fail },
+  subtitle: { fontFamily: font.mono, color: colors.text3, fontSize: fontSize.xs },
+  body: { color: colors.text2, fontSize: fontSize.sm + 0.5, lineHeight: 20 },
+  actions: { flexDirection: "row", gap: space.sm },
 });

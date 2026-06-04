@@ -24,9 +24,15 @@ delivered back to you as your **next user turn**, so you can continue naturally.
   email, deleting, spending) → `ui_card` with `actions` like *Accept & send* /
   *Reject*, then `ui_update` to flip its status afterward.
 - **Collect one value** → `ui_input` (text/number/email), `ui_slider` (a number
-  in a range), or `ui_select` (pick from a list).
+  in a range), `ui_stepper` (a discrete number to nudge up/down then apply), or
+  `ui_select` (pick from a list).
+- **Schedule something** → `ui_datetime` (the user picks one of the day options
+  you supply, at a time you set, and confirms).
 - **Collect several related values at once** → `ui_form` (groups fields under a
   single submit).
+- **Show information richly** → `ui_chart` (data viz), `ui_weather` (conditions),
+  `ui_map` (a place), or `ui_html` (arbitrary rendered HTML). These are display
+  widgets; only `ui_map` (with an `action`) sends anything back.
 
 Prefer a widget over free text when the answer is constrained. Keep prose short
 when a widget carries the interaction. Don't render a widget for open-ended
@@ -42,6 +48,12 @@ discussion.
 | `ui_select` | choose from a list | `options: [{label, value}]`, `multi?`, `label?` |
 | `ui_form` | collect several fields, one submit | `fields: [...]`, `submitLabel?`, `title?` |
 | `ui_card` | approval / status card | `title`, `body?`, `subtitle?`, `actions?`, `status?` |
+| `ui_stepper` | set a number with −/+ and Apply | `value`, `label?`, `min?`, `max?`, `step?`, `unit?` |
+| `ui_datetime` | pick a day + time, then confirm | `days: [{value,weekday,day}]`, `time?`, `meridiem?`, `label?` |
+| `ui_chart` | line / bar / area / pie chart | `chartType`, `series: [{label?,data,color?}]`, `labels?` |
+| `ui_html` | render sandboxed HTML | `html`, `height?` |
+| `ui_weather` | read-only weather card | `location`, `temp`, `condition?`, `icon?`, `high?`, `low?`, `hourly?` |
+| `ui_map` | location snippet + optional Directions | `label`, `caption?`, `pin?`, `action?` |
 | `ui_update` | patch a sent block in place | `msgId`, `blockId`, `patch` |
 
 `style` may be `default`, `primary`, or `danger`. Every `ui_*` call returns a

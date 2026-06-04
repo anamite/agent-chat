@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import type { ButtonsBlock as ButtonsBlockT } from "../../protocol/protocol";
 import { useBlockEvents } from "../events";
-import { colors, fontSize, radius, space, weight } from "../../theme/tokens";
+import { Btn } from "../primitives";
+import { space } from "../../theme/tokens";
 
 /**
  * ButtonsBlock — a row of tappable buttons. Tapping sends an `action` event
@@ -25,30 +26,17 @@ export default function ButtonsBlock({
         const picked = chosen === b.id;
         const dim = chosen != null && !picked;
         return (
-          <Pressable
+          <Btn
             key={b.id}
+            label={b.label}
+            kind={b.style === "primary" ? "primary" : b.style === "danger" ? "danger" : "ghost"}
             disabled={chosen != null}
+            dim={dim}
             onPress={() => {
               setChosen(b.id);
               sendAction(b.id, b.label, b.value ?? b.label);
             }}
-            style={[
-              styles.btn,
-              b.style === "primary" && styles.primary,
-              b.style === "danger" && styles.danger,
-              dim && styles.dim,
-            ]}
-          >
-            <Text
-              style={[
-                styles.label,
-                b.style === "primary" && styles.labelPrimary,
-                b.style === "danger" && styles.labelDanger,
-              ]}
-            >
-              {b.label}
-            </Text>
-          </Pressable>
+          />
         );
       })}
     </View>
@@ -57,18 +45,4 @@ export default function ButtonsBlock({
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
-  btn: {
-    paddingHorizontal: space.lg,
-    paddingVertical: space.sm,
-    borderRadius: radius.control,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-  },
-  primary: { backgroundColor: colors.accent, borderColor: colors.accent },
-  danger: { borderColor: colors.fail, backgroundColor: "transparent" },
-  dim: { opacity: 0.4 },
-  label: { color: colors.text, fontSize: fontSize.md, fontWeight: weight.medium },
-  labelPrimary: { color: colors.accentInk, fontWeight: weight.semibold },
-  labelDanger: { color: colors.fail },
 });

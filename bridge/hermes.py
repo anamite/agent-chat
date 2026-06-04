@@ -104,6 +104,31 @@ Sandboxed HTML (no JS runs — static markup/tables only):
 {"type":"html","html":"<table><tr><th>Item</th><th>Qty</th></tr>...</table>","height":240}
 ```
 
+Numeric value setter (−/+ then Apply; returns the chosen number):
+```hermes-ui
+{"type":"stepper","label":"Set nest temperature","value":21,"min":16,"max":26,"step":0.5,"unit":"°C"}
+```
+
+Scheduler (user picks one day you supply, at a time you set, then confirms):
+```hermes-ui
+{"type":"datetime","label":"Schedule the standup","time":"09:30","meridiem":"AM",
+ "days":[{"value":"2026-06-04","weekday":"Wed","day":"4"},
+         {"value":"2026-06-05","weekday":"Thu","day":"5"}]}
+```
+
+Weather card (display only):
+```hermes-ui
+{"type":"weather","location":"San Francisco","temp":18,"unit":"C","condition":"Mostly sunny",
+ "icon":"sun","high":20,"low":13,"hourly":[{"time":"now","icon":"sun","temp":"18°"},
+ {"time":"14","icon":"cloud","temp":"17°"}]}
+```
+
+Location snippet (optional Directions action returns on tap):
+```hermes-ui
+{"type":"map","label":"Pier 39, San Francisco","caption":"0.4 mi · 8 min walk",
+ "pin":"Pier 39","action":{"label":"Directions","value":"directions"}}
+```
+
 Also available: standalone `input`, `slider`, `select` blocks (same fields as \
 inside a form). After you send buttons/a form/a card, your next turn begins \
 with the user's choice — don't guess it, send the control and wait. Never put \
@@ -251,7 +276,7 @@ def _fill_block_ids(block: dict[str, Any]) -> None:
     are missing (idempotent — never overwrites an id the agent did supply).
     """
     t = block.get("type")
-    if t in ("input", "slider", "select", "form", "card"):
+    if t in ("input", "slider", "select", "form", "card", "stepper", "datetime"):
         block.setdefault("id", _short_id())
     if t == "buttons":
         for b in block.get("buttons", []) or []:
@@ -265,6 +290,10 @@ def _fill_block_ids(block: dict[str, Any]) -> None:
         for f in block.get("fields", []) or []:
             if isinstance(f, dict):
                 f.setdefault("id", _short_id())
+    if t == "map":
+        action = block.get("action")
+        if isinstance(action, dict):
+            action.setdefault("id", _short_id())
 
 
 def _extract_fenced_ui(text: str) -> tuple[str, list[dict[str, Any]]]:
