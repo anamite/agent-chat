@@ -38,6 +38,78 @@ def _now_ms() -> int:
     return int(time.time() * 1000)
 
 
+# ---------------------------------------------------------------------------
+# Interactive-UI system prompt (§3 / §4.4)
+# ---------------------------------------------------------------------------
+#
+# The Bridge talks to Hermes over the plain /v1/chat/completions API, whose
+# built-in "api_server" platform hint tells the agent to reply in plain text.
+# That suppresses the rich, Telegram-style UI this app is built for. We counter
+# it by injecting a system turn that (a) tells the agent it is on a rich mobile
+# client and (b) teaches it the fenced ```hermes-ui block protocol that the
+# Bridge already parses (see _extract_fenced_ui). If the native ui_* plugin
+# tools are also enabled server-side the agent may use those instead — both
+# paths converge on the same blocks.
+_UI_SYSTEM_PROMPT = """\
+You are talking to the user through Hermes Mobile — a rich Telegram-style \
+messenger app, NOT a plain-text terminal. You can render interactive UI by \
+emitting a fenced code block tagged `hermes-ui` containing a JSON block (or a \
+JSON array of blocks). The app renders these as real widgets after any prose \
+you write; the raw JSON is never shown to the user. If `ui_*` tools are \
+available to you, prefer calling them; otherwise use the fenced blocks below.
+
+Use rich UI only when it genuinely helps — a short text reply is still the \
+default. One decision per message.
+
+CONFIRMATION (important): before doing anything consequential or hard to undo \
+(sending a message/email, deleting, spending, scheduling, messaging someone \
+else), DO NOT just act. First emit an approval `card` with status "pending" \
+and Approve/Reject actions, then STOP and wait. On your next turn you will be \
+told what the user chose; only then perform the action (and emit an updated \
+card with status "approved", or acknowledge a rejection).
+
+Block shapes (omit `id` fields — the app fills them):
+
+Approval / status card:
+```hermes-ui
+{"type":"card","title":"Send follow-up email to Dana?","subtitle":"Re: Q3 renewal",
+ "body":"Hi Dana — circling back on the renewal terms…","status":"pending",
+ "actions":[{"label":"Reject","value":"reject","style":"danger"},
+            {"label":"Accept & send","value":"approve","style":"primary"}]}
+```
+
+Tappable choices:
+```hermes-ui
+{"type":"buttons","buttons":[{"label":"Today","value":"today","style":"primary"},
+ {"label":"Yesterday","value":"yesterday"},{"label":"This week","value":"week"}]}
+```
+
+Collect structured input (one submit):
+```hermes-ui
+{"type":"form","title":"New reminder","submitLabel":"Set reminder","fields":[
+ {"type":"input","label":"Remind me to","placeholder":"call the bank"},
+ {"type":"slider","label":"In how many hours","min":1,"max":24,"value":3},
+ {"type":"select","label":"Priority","options":[{"label":"Low","value":"low"},
+   {"label":"High","value":"high"}]}]}
+```
+
+Chart (kinds: line | bar | area | pie):
+```hermes-ui
+{"type":"chart","chartType":"bar","title":"Renewals by month",
+ "labels":["Apr","May","Jun"],"series":[{"label":"2026","data":[3,5,2]}]}
+```
+
+Sandboxed HTML (no JS runs — static markup/tables only):
+```hermes-ui
+{"type":"html","html":"<table><tr><th>Item</th><th>Qty</th></tr>...</table>","height":240}
+```
+
+Also available: standalone `input`, `slider`, `select` blocks (same fields as \
+inside a form). After you send buttons/a form/a card, your next turn begins \
+with the user's choice — don't guess it, send the control and wait. Never put \
+secrets, tokens, or API keys inside html/chart blocks."""
+
+
 def _text_from_blocks(blocks: list[dict[str, Any]]) -> str:
     """Concatenate the text blocks of a message into a single string."""
     parts = [b.get("text", "") for b in blocks if b.get("type") == "text"]
@@ -108,9 +180,14 @@ async def stream_hermes_reply(
     if not (last and last["role"] == "user" and last["content"] == user_msg_text):
         history.append({"role": "user", "content": user_msg_text})
 
+    messages: list[dict[str, str]] = []
+    if settings.ui_system_prompt:
+        messages.append({"role": "system", "content": _UI_SYSTEM_PROMPT})
+    messages.extend(history)
+
     payload = {
         "model": settings.hermes_model,
-        "messages": history,
+        "messages": messages,
         "stream": False,
     }
     headers = {
@@ -158,6 +235,38 @@ async def stream_hermes_reply(
 _FENCE_RE = re.compile(r"```hermes-ui\s*(.+?)```", re.DOTALL)
 
 
+def _short_id() -> str:
+    """A short, schema-valid id (1-64 chars) for blocks the agent left blank."""
+    import uuid
+
+    return uuid.uuid4().hex[:12]
+
+
+def _fill_block_ids(block: dict[str, Any]) -> None:
+    """Inject ids the strict schema requires but the agent reliably omits.
+
+    The pydantic block schema requires ``id`` on card/buttons-items/form/fields
+    and the standalone input/slider/select blocks. The model can't generate
+    these, so blocks would fail validation and silently vanish. Fill any that
+    are missing (idempotent — never overwrites an id the agent did supply).
+    """
+    t = block.get("type")
+    if t in ("input", "slider", "select", "form", "card"):
+        block.setdefault("id", _short_id())
+    if t == "buttons":
+        for b in block.get("buttons", []) or []:
+            if isinstance(b, dict):
+                b.setdefault("id", _short_id())
+    if t == "card":
+        for a in block.get("actions", []) or []:
+            if isinstance(a, dict):
+                a.setdefault("id", _short_id())
+    if t == "form":
+        for f in block.get("fields", []) or []:
+            if isinstance(f, dict):
+                f.setdefault("id", _short_id())
+
+
 def _extract_fenced_ui(text: str) -> tuple[str, list[dict[str, Any]]]:
     """
     Extract + validate ```hermes-ui ...``` fenced blocks from `text`.
@@ -181,6 +290,8 @@ def _extract_fenced_ui(text: str) -> tuple[str, list[dict[str, Any]]]:
             try:
                 from . import pydantic_schema as ps
 
+                if isinstance(cand, dict):
+                    _fill_block_ids(cand)  # supply ids the model omits
                 ps.parse_block(cand)  # validate; raises on bad shape
                 blocks.append(cand)
             except Exception as e:  # noqa: BLE001

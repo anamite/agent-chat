@@ -38,6 +38,13 @@ class Settings(BaseSettings):
     hermes_key: str = ""  # Bearer token for API_SERVER_KEY
     # How many prior messages to replay as chat history per turn.
     hermes_history_limit: int = 20
+    # Inject a system turn that teaches the agent the interactive-UI protocol
+    # (fenced ```hermes-ui blocks + the confirmation-card convention). This is
+    # what makes buttons / forms / approval cards appear instead of plain text,
+    # without depending on the Hermes server having the app_ui toolset enabled.
+    # Set BRIDGE_UI_SYSTEM_PROMPT=0 to disable (e.g. if you wire the ui_* tools
+    # natively via platform_toolsets.api_server instead).
+    ui_system_prompt: bool = True
 
     # --- Voice (STT via Hermes' faster-whisper; TTS via edge-tts) ----------
     # The Hermes agent ships faster-whisper in its own venv; we shell out to it
