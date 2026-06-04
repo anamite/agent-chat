@@ -36,8 +36,13 @@ const CHART_H = 160;
 const BAR_W = 18;
 const GROUP_BAR_W = 12;
 
-// Shared axis styling for bar / line / area.
-const AXIS_LABEL_STYLE = { color: colors.text2, fontSize: 9 };
+// Axis label styling for bar / line / area. Returns a FRESH object each call:
+// react-native-gifted-charts deep-clones the props/data it receives and its
+// cloner mutates every nested object (`obj.isActiveClone = null`). A shared
+// module constant gets reused across renders and can end up non-extensible,
+// which makes that mutation throw ("Cannot add new property 'isActiveClone'").
+// Handing it a new object every time keeps the cloner on extensible objects.
+const axisLabel = () => ({ color: colors.text2, fontSize: 9 });
 
 // ---------------------------------------------------------------------------
 // Bar chart
@@ -53,7 +58,6 @@ function BarViz({ block }: { block: ChartBlockT }) {
       value: v,
       label: labels[i] ?? String(i + 1),
       frontColor: color,
-      labelTextStyle: AXIS_LABEL_STYLE,
     }));
 
     return (
@@ -68,7 +72,7 @@ function BarViz({ block }: { block: ChartBlockT }) {
         xAxisColor={colors.border}
         yAxisColor={colors.border}
         yAxisTextStyle={{ color: colors.text2, fontSize: 9 }}
-        xAxisLabelTextStyle={AXIS_LABEL_STYLE}
+        xAxisLabelTextStyle={axisLabel()}
         noOfSections={4}
         rulesColor={colors.border}
         rulesType="dashed"
@@ -85,7 +89,6 @@ function BarViz({ block }: { block: ChartBlockT }) {
       value: s.data[i] ?? 0,
       frontColor: seriesColor(si, s.color),
       label: si === 0 ? (labels[i] ?? String(i + 1)) : undefined,
-      labelTextStyle: si === 0 ? AXIS_LABEL_STYLE : undefined,
     })),
   }));
 
@@ -99,7 +102,7 @@ function BarViz({ block }: { block: ChartBlockT }) {
     xAxisColor: colors.border,
     yAxisColor: colors.border,
     yAxisTextStyle: { color: colors.text2, fontSize: 9 },
-    xAxisLabelTextStyle: AXIS_LABEL_STYLE,
+    xAxisLabelTextStyle: axisLabel(),
     noOfSections: 4,
     rulesColor: colors.border,
     rulesType: "dashed",
@@ -121,7 +124,6 @@ function LineOrArea({ block, type }: { block: ChartBlockT; type: "line" | "area"
     block.series[seriesIdx].data.map((v, i) => ({
       value: v,
       label: labels[i] ?? String(i + 1),
-      labelTextStyle: AXIS_LABEL_STYLE,
       dataPointColor: seriesColor(seriesIdx, block.series[seriesIdx].color),
     }));
 
@@ -175,7 +177,7 @@ function LineOrArea({ block, type }: { block: ChartBlockT; type: "line" | "area"
       xAxisColor={colors.border}
       yAxisColor={colors.border}
       yAxisTextStyle={{ color: colors.text2, fontSize: 9 }}
-      xAxisLabelTextStyle={AXIS_LABEL_STYLE}
+      xAxisLabelTextStyle={axisLabel()}
       noOfSections={4}
       rulesColor={colors.border}
       rulesType="dashed"
