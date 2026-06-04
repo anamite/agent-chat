@@ -1,0 +1,37 @@
+# cloudflared-config.yml — Cloudflare Tunnel ingress for the Hermes Bridge.
+#
+# The Bridge binds 127.0.0.1:8787 only; this tunnel is the sole public entry
+# point. Cloudflare Tunnel passes WebSockets through transparently, so a single
+# ingress rule covers both /ws (wss://) and /files (https://).
+#
+# Setup (run on the Pi, as the hermes user):
+#   1. cloudflared tunnel login
+#   2. cloudflared tunnel create hermes-bridge      # prints the <TUNNEL_UUID>
+#   3. Put this file at ~/.cloudflared/config.yml and fill in the UUID + hostname
+#   4. cloudflared tunnel route dns hermes-bridge hermes.example.com
+#   5. cloudflared tunnel run hermes-bridge
+#      (or install as a service: sudo cloudflared service install)
+#
+# The app pairs against wss://hermes.example.com (BRIDGE_PUBLIC_URL).
+
+tunnel: <TUNNEL_UUID>
+credentials-file: /home/hermes/.cloudflared/<TUNNEL_UUID>.json
+
+# Keep WebSocket connections healthy through the edge.
+originRequest:
+  connectTimeout: 30s
+  noTLSVerify: false
+  # The Bridge is plain HTTP on loopback; TLS terminates at Cloudflare.
+
+ingress:
+  # SECURITY: never expose the localhost-only /internal/* endpoints through the
+  # tunnel. Behind cloudflared every request originates from 127.0.0.1, so the
+  # Bridge's loopback check cannot filter remote callers — block the path here.
+  - hostname: hermes.example.com
+    path: ^/internal/.*
+    service: http_status:404
+  # Your public hostname -> the loopback Bridge.
+  - hostname: hermes.example.com
+    service: http://127.0.0.1:8787
+  # Required catch-all: everything else gets a 404.
+  - service: http_status:404

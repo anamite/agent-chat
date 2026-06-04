@@ -1,0 +1,42 @@
+[Unit]
+# Hermes Mobile Gateway — FastAPI Bridge.
+# Binds 127.0.0.1:8787 only; cloudflared is the sole public entry point.
+Description=Hermes Bridge (FastAPI WebSocket + file server)
+Documentation=https://github.com/NousResearch/hermes-agent
+After=network-online.target
+Wants=network-online.target
+# Start after the Hermes API server if it's also a unit on this host.
+After=hermes-agent.service
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+WorkingDirectory=/home/hermes/hermes-mobile-gateway
+
+# Secrets + tunables live here (not in the unit). See hermes-bridge.env.example.
+EnvironmentFile=/home/hermes/hermes-mobile-gateway/bridge/systemd/hermes-bridge.env
+
+# Run via the project venv. uvicorn binds loopback only.
+ExecStart=/home/hermes/hermes-mobile-gateway/.venv/bin/python -m uvicorn bridge.main:app \
+    --host 127.0.0.1 --port 8787
+
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGINT
+
+# --- Hardening -------------------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+# Bridge data (db, uploads, allowlist) lives under ~/.hermes/bridge.
+ReadWritePaths=/home/hermes/.hermes/bridge
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

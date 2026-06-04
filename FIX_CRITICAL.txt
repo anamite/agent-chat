@@ -1,0 +1,34 @@
+FIX CRITICAL + WARNINGS from verification audit
+
+Read /home/hermes/hermes-mobile-gateway/README.md for context.
+
+CRITICAL — FIX NOW:
+
+1. DELETE the broken duplicate plugin:
+   - Delete bridge/plugin.py (broken: wrong ULID, missing msgId, wrong field names)
+   - Delete ~/.hermes/plugins/app_ui.py (stale copy)
+   - Keep ONLY plugin/app-ui/__init__.py and plugin/app-ui/HERMES_UI.skill.md
+   - Verify ~/.hermes/plugins/app-ui/ is the correctly installed package
+
+2. FIX HtmlBlock schema drift:
+   - Add `allowJs: bool = False` field to HtmlBlock in bridge/pydantic_schema.py
+   - Match protocol.ts which already has `allowJs: z.boolean().optional()`
+   - Verify the pydantic HtmlBlock now accepts frames with allowJs
+   - Test: python3 -c "from bridge.pydantic_schema import HtmlBlock; h=HtmlBlock(html='<b>hi</b>', allowJs=True); print(h)"
+
+3. ADD thumbnail generation (BUILD_PLAN.md §4.2):
+   - In bridge/main.py upload handler: generate a small thumbnail on image upload, store thumbId
+   - GET /files/{id} with ?thumb=1 should serve the thumbnail, not full file
+   - Use Pillow if available, or skip with a clear comment if not installed on this Pi
+
+4. DOCUMENT /internal/ui caveat:
+   - Add comment in bridge/main.py above /internal/ui noting: loopback check is weak behind cloudflared tunnel (all traffic appears 127.0.0.1). Rely on X-Internal-Token. Ensure tunnel ingress never maps /internal/* path.
+
+5. UPDATE README:
+   - Fix plugin section: document plugin/app-ui/ (not bridge/plugin.py)
+   - Update file counts and line counts to match reality
+   - Update total cost: M0-M3 ($17.32) + M4 ($4.62) + M5 ($6.33) + verify ($1.66) + fixes (TBD)
+
+Do NOT modify the working plugin/app-ui/__init__.py — it's correct.
+Keep all changes minimal and surgical.
+Work in /home/hermes/hermes-mobile-gateway. npm/node at ~/.hermes/node/bin/. Python at python3, venv at .venv/.

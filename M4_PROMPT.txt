@@ -1,0 +1,36 @@
+M4 — Rich Blocks (Charts + HTML)
+
+Read /home/hermes/hermes-mobile-gateway/README.md for full project context — architecture, design tokens, file inventory, existing patterns.
+
+Then read /home/hermes/hermes-mobile-gateway/BUILD_PLAN.md §3 (SDUI renderer) and §7 M4. Implement:
+
+1. APP — Create app/src/sdui/blocks/ChartBlock.tsx:
+- Use react-native-gifted-charts (already installed)
+- Support chartType: "line", "bar", "area", "pie"
+- Dark theme: canvas background, border gridlines, lime accent (#D6FF3D) for data
+- Pie: donut mode, center label with total, legend below
+- Line/Area/Bar: labels on x-axis, value tooltips
+- Non-interactive (no events needed)
+- Match existing design tokens from src/theme/tokens.ts
+
+2. APP — Create app/src/sdui/blocks/HtmlBlock.tsx:
+- Use react-native-webview (already installed)
+- Sandbox: javaScriptEnabled={false}, originWhitelist={[]}, no file access
+- Strict CSP injected via meta: default-src 'none'; style-src 'unsafe-inline'
+- Dark base stylesheet injected matching tokens
+- Fixed height, scrollable
+- "JS OFF" badge by default; "JS ON" badge if block.allowJs flag is set
+- Margin/gap matching existing blocks
+
+3. APP — Update BlockRenderer.tsx:
+- Import and register ChartBlock and HtmlBlock
+- Add "chart" and "html" cases
+
+4. BRIDGE — Update plugin.py if needed:
+- ui_chart and ui_html tools should already exist — verify they match protocol
+
+5. PROTOCOL — Verify chart and html types already exist in protocol.ts (they were added in M0)
+
+Keep all code matching existing patterns and design tokens exactly. No new packages needed.
+
+Work in /home/hermes/hermes-mobile-gateway. npm/npx/node at ~/.hermes/node/bin/.

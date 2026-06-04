@@ -1,0 +1,15 @@
+FIX: Bridge needs to send API key to Hermes API server
+
+The Hermes API server at http://127.0.0.1:8642 requires Authorization: Bearer <key> header. The Bridge's hermes.py doesn't send one — it only sends Content-Type, Accept, X-Hermes-Session-Id.
+
+FIX:
+1. Add `hermes_key` setting to bridge/config.py (env: BRIDGE_HERMES_KEY, default "")
+2. In bridge/hermes.py around line 117, add Authorization header if hermes_key is set:
+   if settings.hermes_key:
+       headers["Authorization"] = f"Bearer {settings.hermes_key}"
+3. Set BRIDGE_HERMES_KEY env var when starting Bridge (value: ce715eadd2075657b9db2d6dc851acd5f9e59c1140fa762619360e07d78c4135)
+4. Also update BRIDGE_HERMES_URL to http://127.0.0.1:8642 (not 4700)
+5. Test: curl -H "Authorization: Bearer ce715eadd2075657b9db2d6dc851acd5f9e59c1140fa762619360e07d78c4135" http://127.0.0.1:8642/v1/models — should return 200
+
+Keep changes minimal. Only modify bridge/config.py and bridge/hermes.py.
+Work in /home/hermes/hermes-mobile-gateway. Python at python3.

@@ -1,0 +1,68 @@
+FULL PROJECT VERIFICATION — Design & Build Plan Compliance Audit
+
+You are auditing the Hermes Mobile Gateway project. Read ALL of the following in order, then produce a detailed verification report:
+
+1. Read /home/hermes/hermes-mobile-gateway/BUILD_PLAN.md — the complete build specification
+2. Read /home/hermes/hermes-mobile-gateway/design/hermes-design.html — the reference design
+3. Read /home/hermes/hermes-mobile-gateway/README.md — current state + architecture
+
+Then go through EVERY source file (skip node_modules, .venv, __pycache__, .claude, systemd/, cloudflared/):
+
+MANDATORY VERIFICATION CHECKS:
+
+A. PROTOCOL COMPLIANCE:
+- Diff bridge/protocol.ts vs app/src/protocol/protocol.ts — they MUST be byte-identical
+- Verify bridge/pydantic_schema.py matches protocol.ts Zod schemas
+- Check bridge/plugin.py: every ui_* tool emits frames that match the protocol types
+- Verify bridge/ws.py and bridge/hermes.py validate frames before sending
+- Verify app/src/protocol/encode.ts encodes to correct types
+
+B. ARCHITECTURE COMPLIANCE (BUILD_PLAN.md §1-6):
+- WebSocket frames only — files/voice MUST go over HTTP Range (check bridge/main.py routes and app/src/transport/files.ts)
+- Bridge binds 127.0.0.1:8787 only
+- Hermes at 127.0.0.1:4700 /v1/chat/completions
+- Cloudflare Tunnel as sole entry point
+- /internal/ui loopback + internal token only
+- Device tokens hashed + revocable
+
+C. DESIGN TOKEN AUDIT:
+- Extract color palette from design/hermes-design.html
+- Search EVERY app/src/**/*.tsx file for hardcoded colors that aren't from theme/tokens.ts
+- Check: Canvas #08090A, Surface #15171A, Border #2A2D33, Text #F3F4F5, Text2 #969BA3, Accent #D6FF3D, OK #5CE08F, Warn #F5C451, Fail #FF6B5E
+- Check font: Geist 300-700, Geist Mono for labels/timestamps/code
+- Check border radii: Controls 3px, Console cards 8px, Canvas cards 16px
+- Check spacing patterns match design
+
+D. MILESTONE COMPLETENESS:
+For each milestone M0-M5, verify all deliverables from BUILD_PLAN.md §7 exist and are complete.
+Check the acceptance checklist §8 item by item — mark each as:
+  ✅ CODE-VERIFIED
+  🔵 IMPLEMENTED (needs live stack)
+  ❌ MISSING
+  ⚠️ PARTIAL (explain)
+
+E. CODE QUALITY:
+- TypeScript: run `cd app && npx tsc --noEmit 2>&1` — must be clean
+- Python: run `cd bridge && python3 -c "import main, hermes, ws, auth, ratelimit, pair, plugin, config, db; print('All imports OK')"` 
+- Check for: missing error handling, unhandled promise chains, any TODO/FIXME comments
+- Check every SDUI block component is registered in BlockRenderer.tsx
+- Check every ui_* tool in plugin.py has a corresponding block component
+
+F. SECURITY:
+- No hardcoded secrets or tokens
+- HTML blocks: verify javaScriptEnabled={false}, originWhitelist={[]}, CSP injection present
+- Rate limiting configurable (not hardcoded)
+- Internal endpoints protected
+
+G. FILE INVENTORY:
+- Count lines in every source file (not generated, not in node_modules/.venv)
+- Compare against README.md file inventory — flag discrepancies
+- Count total TypeScript lines, Python lines
+
+REPORT FORMAT:
+For each category (A-G), produce a table: Check | Status | Detail
+End with a summary: total files, total lines, PASS/FAIL/WARN counts.
+Flag any critical issues that must be fixed before production use.
+
+Work in /home/hermes/hermes-mobile-gateway. npm/node at ~/.hermes/node/bin/. Python at python3, venv at .venv/. 
+Do NOT modify any code — this is audit-only. Just report findings.

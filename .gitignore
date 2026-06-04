@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+*.pyc
+__pycache__/
+.venv/
+.env
+.env.local
+*.log
+.DS_Store
+android/
+ios/

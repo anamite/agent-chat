@@ -1,0 +1,34 @@
+M1 — Text chat e2e
+
+Read BUILD_PLAN.md §4.1 (Conversation loop) and §4.3 (Reconnect/replay). Then implement:
+
+1. BRIDGE — Create bridge/hermes.py:
+- stream_hermes_reply(db, settings, chat, user_msg_text) async function
+- Build chat history from frame_log for that chat (last ~20 messages as OpenAI-format messages)
+- POST to settings.hermes_chat_url (http://127.0.0.1:4700/v1/chat/completions) with streaming, X-Hermes-Session-Id: chat
+- First frame: typing(start), then per-token: stream frame with msgId, delta
+- On complete: stream frame with done=true, typing(stop), then final message frame with full text
+- Handle errors gracefully (error frame)
+
+2. BRIDGE — Patch ws.py _dispatch:
+- When kind=="message" and from=="user" and wire has a text block: call stream_hermes_reply
+- Don't double-broadcast the user's own message back to them
+- The Hermes reply should flow through broadcast to all connected sockets
+
+3. APP — Patch brain.tsx:
+- Show typing indicator when agent is typing (animated dots or "Hermes is typing…")
+- Stream deltas into live bubble (appendMode for agent messages marked streaming)
+- Remove ▋ cursor when done=true
+- Group messages by sender, show timestamps loosely
+
+4. APP — Store app.ts:
+- Track typing state: add `agentTyping: boolean` to AppState
+- Set on typing(start), clear on typing(stop)
+- The ingest.ts already handles stream frames → appendStream — confirm it works
+
+5. APP — db.ts:
+- Add appendStream support for message blocks (already has the basics in db.ts — verify streaming: boolean works for the chat UI)
+
+Keep changes minimal. Test by attempting to import the new hermes.py module from ws.py.
+
+Work in /home/hermes/hermes-mobile-gateway. npm/npx/node are at ~/.hermes/node/bin/.

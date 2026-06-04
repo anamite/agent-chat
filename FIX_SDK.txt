@@ -1,0 +1,16 @@
+FIX: Expo Go "Incompatible SDK version" error
+
+The user gets "Uncaught Error: java.lang.Exception: Incompatible SDK version" when loading the app in Expo Go on Android.
+
+Read /home/hermes/hermes-mobile-gateway/app/package.json and app.json to see current expo SDK version.
+
+Then:
+1. Check what Expo SDK version is compatible with the currently installed expo-cli (run `npx expo --version`)
+2. Check what the latest Expo Go supports
+3. Update package.json, app.json, and tsconfig to match a compatible SDK version
+4. If dependencies need version bumps, update them too
+5. Run `npx expo install --fix` to align all expo packages
+6. Test that Metro bundler starts without SDK errors
+
+DO NOT change any app code — only config/dependency versions.
+Work in /home/hermes/hermes-mobile-gateway/app. npm/node at ~/.hermes/node/bin/.

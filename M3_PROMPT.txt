@@ -1,0 +1,46 @@
+M3 — Interactive SDUI
+
+Read BUILD_PLAN.md §3 (SDUI renderer), §4.4 (two ways agent emits UI), §5 (plugin skeleton). Then implement:
+
+1. APP — Block components in app/src/sdui/blocks/:
+- ButtonsBlock.tsx — row of tappable buttons. Each has id, label, value, style (primary/ghost/danger). On tap → send event frame
+- InputBlock.tsx — text input with label, placeholder. On submit → send event
+- SliderBlock.tsx — range slider with min/max/step/label. On change → send event
+- SelectBlock.tsx — single/multi select with options. On select → send event
+- FormBlock.tsx — groups multiple input/select/slider fields, single submit button. On submit → send event with all values
+- CardBlock.tsx — approval card: icon, title, subtitle, body (text), status (pending/approved/rejected), actions (Accept/Reject buttons). On action → send event, then patch status in-place when edit frame arrives
+
+All must use design tokens from src/theme/tokens.ts (dark theme, lime accent). On tap/submit/action → call eventFrame() and send via socket.
+
+2. APP — Update BlockRenderer.tsx:
+- Register all new blocks in the registry
+- Handle 'edit' frames: patch the specific block by id in-place in the messages list
+
+3. APP — protocol/encode.ts:
+- eventFrame(chat, msgId, {type, source, name, value}) for actions
+- formSubmitFrame(chat, msgId, formId, values) for form submissions
+
+4. APP — Protocol types (add if missing):
+- EventPayload: {type: "action"|"submit", source, name?, value?, form?, values?}
+
+5. BRIDGE — ws.py:
+- When kind=="event" arrives: inject as user turn into Hermes session. Call stream_hermes_reply for the event (text format: describe what the user did)
+
+6. BRIDGE — plugin.py (also copy to ~/.hermes/plugins/app_ui.py):
+- ui_buttons(chat, text, buttons[{label,value,style?}])
+- ui_input(chat, text, label, placeholder?)  
+- ui_slider(chat, text, label, min, max, step?, value?)
+- ui_select(chat, text, label, options[{label,value}], multi?)
+- ui_form(chat, text, fields, submitLabel?)
+- ui_card(chat, title, subtitle?, body, actions[{label,value,style}])
+- ui_update(chat, msgId, blockId, patch) — for in-place edits
+- All POST to BRIDGE /internal/ui with X-Internal-Token
+
+7. SKILL — Create ~/.hermes/skills/HERMES_UI.skill.md:
+- Agentskills.io format SKILL.md
+- Documents all ui_* tools, when to use them, block types
+- Example usage patterns
+
+Keep changes minimal and consistent with existing patterns. app/src/sdui/blocks/ already has TextBlock, FileBlock, VoiceBlock.
+
+Work in /home/hermes/hermes-mobile-gateway. Node at ~/.hermes/node/bin/.

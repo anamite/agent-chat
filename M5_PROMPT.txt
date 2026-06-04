@@ -1,0 +1,54 @@
+M5 — Hardening & Polish
+
+Read /home/hermes/hermes-mobile-gateway/README.md for full project context — architecture, design tokens, file inventory, existing patterns.
+
+Then read /home/hermes/hermes-mobile-gateway/BUILD_PLAN.md §7 M5 and the acceptance checklist in §8. Implement these hardening tasks:
+
+1. AUTH & VALIDATION PASS:
+- Bridge: rate-limit WS connections and /internal/ui endpoint (token bucket or sliding window, configurable in config.py)
+- Bridge: validate every incoming WS frame against protocol.ts schema — drop and log malformed frames
+- Bridge: ensure /internal/ui only accessible via loopback + internal token check
+- Bridge: device token hashing + revocation support in auth.py
+- App: secure-store token rotation on auth failure
+- App: validate incoming frames client-side before rendering
+
+2. ERROR & OFFLINE STATES:
+- App: graceful error boundaries around SDUI block rendering (no white screen on bad blocks)
+- App: offline banner/indicator when WS disconnected (matching design tokens)
+- App: retry with exponential backoff on reconnect (socket.ts)
+- App: user-friendly error messages for: upload failure, playback failure, pairing failure
+- Bridge: structured error frames that the app can display
+
+3. DESIGN PIXEL-MATCH:
+- Read design/hermes-design.html and compare against current app implementation
+- Fix any visual mismatches: spacing, colors, typography, border radii, shadows
+- Ensure Console mode (dense, bubbleless agent) and Canvas mode (roomy, bubbles) both render correctly
+- Verify all 11 SDUI blocks match design tokens from src/theme/tokens.ts
+
+4. SYSTEMD UNIT:
+- Create bridge/systemd/hermes-bridge.service for the FastAPI Bridge
+- Should restart on failure, bind to 127.0.0.1:8787, workdir /home/hermes/hermes-mobile-gateway
+- Include EnvironmentFile for config
+- Add bridge/cloudflared/cloudflared-config.yml example
+
+5. README UPDATE:
+- Update README.md: mark M4 as ✅ complete, fill in M5 status
+- Update total cost, file inventory line counts
+- Add systemd + cloudflared setup instructions
+
+6. ACCEPTANCE CHECKLIST VERIFICATION:
+Go through BUILD_PLAN.md §8 and verify each item:
+- [ ] Frame validation on both ends
+- [ ] Reconnect replays with no dupes
+- [ ] Token-by-token streaming
+- [ ] Files/voice over HTTP Range
+- [ ] Interactive block event round-trip
+- [ ] /internal/ui loopback + token protected
+- [ ] HTML sandboxed (no JS by default)
+- [ ] UI matches design file
+- [ ] HERMES_UI.skill.md installed
+
+Report any items that don't pass and fix what you can. Note items that need the full running stack to verify.
+
+Keep all code matching existing patterns and design tokens exactly.
+Work in /home/hermes/hermes-mobile-gateway. npm/npx/node at ~/.hermes/node/bin/. Python at python3, venv at .venv/.

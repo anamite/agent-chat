@@ -1,0 +1,10 @@
+name: app-ui
+version: "1.0"
+description: >
+  Lets the Hermes agent render interactive UI (buttons, inputs, sliders,
+  selects, forms, approval cards) and update it in place in the Hermes Mobile
+  Gateway app. Each tool pushes a validated block to the Bridge's
+  localhost-only /internal/ui endpoint; the user's tap/submit returns as the
+  agent's next turn.
+requires_env:
+  - BRIDGE_INTERNAL_TOKEN
